@@ -19,7 +19,7 @@ const row = (bill) => {
     `;
 };
 
-// Ajout de la methode sort pour régler le 1er bug
+// Ajout de la methode sort pour régler le 1er Bug
 const rows = (data) => {
   return data && data.length
     ? data
