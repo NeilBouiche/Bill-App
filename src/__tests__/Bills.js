@@ -58,7 +58,7 @@ describe("Given I am connected as an employee", () => {
       });
     });
 
-    test("handleClickNewBill should call onNavigate with the right argument", () => {
+    test("handleClickNewBill should call onNavigate with the right path", () => {
       const buttonNewBill = document.createElement("button");
       buttonNewBill.setAttribute("data-testid", "btn-new-bill");
       document.body.appendChild(buttonNewBill);
@@ -88,6 +88,58 @@ describe("Given I am connected as an employee", () => {
       expect($().find().html).toHaveBeenCalledWith(
         `<div style='text-align: center;' class="bill-proof-container"><img width=50 src=http://localhost/bill.jpg alt="Bill" /></div>`
       );
+    });
+  });
+
+  describe("When the page renders", () => {
+    let document, store;
+
+    beforeEach(() => {
+      const dom = new JSDOM(`<!DOCTYPE html><p>Hello world</p>`);
+      global.document = dom.window.document;
+      global.$ = jest.fn().mockReturnValue({
+        click: jest.fn(),
+      });
+      document = {
+        querySelector: jest.fn(),
+        querySelectorAll: jest.fn(),
+      };
+      store = {
+        bills: () => {
+          return {
+            list: () =>
+              Promise.resolve([
+                {
+                  date: "2022-01-01",
+                  status: "pending",
+                },
+                {
+                  date: "2022-02-01",
+                  status: "accepted",
+                },
+              ]),
+          };
+        },
+      };
+    });
+
+    test("should return a list of bills", async () => {
+      const bill = new Bills({
+        document,
+        store,
+      });
+
+      const bills = await bill.getBills();
+      expect(bills).toEqual([
+        {
+          date: "1 Jan. 22",
+          status: "En attente",
+        },
+        {
+          date: "1 Fév. 22",
+          status: "Accepté",
+        },
+      ]);
     });
   });
 });

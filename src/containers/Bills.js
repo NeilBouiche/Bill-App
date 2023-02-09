@@ -65,5 +65,3 @@ export default class {
     }
   };
 }
-
-// Où cette class est-elle appelé ?
