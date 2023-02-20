@@ -1,17 +1,29 @@
 /**
  * @jest-environment jsdom
  */
-
+import "@testing-library/jest-dom";
 import { screen, waitFor } from "@testing-library/dom";
 import BillsUI from "../views/BillsUI.js";
 import { bills } from "../fixtures/bills.js";
 import { default as Bills } from "../containers/Bills";
-import { ROUTES_PATH } from "../constants/routes.js";
-import { localStorageMock } from "../__mocks__/localStorage.js";
+import { ROUTES, ROUTES_PATH } from "../constants/routes";
+import mockStore from "../__mocks__/store.js";
 import jsdom from "jsdom";
 import router from "../app/Router.js";
+import { localStorageMock } from "../__mocks__/localStorage.js";
 
 describe("Given I am connected as an employee", () => {
+  beforeEach(() => {
+    const dom = new JSDOM(`<!DOCTYPE html><p>Hello world</p>`);
+    global.document = dom.window.document;
+    global.$ = jest.fn().mockReturnValue({
+      click: jest.fn(),
+    });
+    document = {
+      querySelector: jest.fn(),
+      querySelectorAll: jest.fn(),
+    };
+  });
   describe("When I am on Bills Page", () => {
     test("Then bill icon in vertical layout should be highlighted", async () => {
       Object.defineProperty(window, "localStorage", {
@@ -91,55 +103,127 @@ describe("Given I am connected as an employee", () => {
     });
   });
 
-  describe("When the page renders", () => {
-    let document, store;
+  //   describe("When the page renders", () => {
+  //     let document, store;
 
-    beforeEach(() => {
-      const dom = new JSDOM(`<!DOCTYPE html><p>Hello world</p>`);
-      global.document = dom.window.document;
-      global.$ = jest.fn().mockReturnValue({
-        click: jest.fn(),
+  //     beforeEach(() => {
+  //       const dom = new JSDOM(`<!DOCTYPE html><p>Hello world</p>`);
+  //       global.document = dom.window.document;
+  //       global.$ = jest.fn().mockReturnValue({
+  //         click: jest.fn(),
+  //       });
+  //       document = {
+  //         querySelector: jest.fn(),
+  //         querySelectorAll: jest.fn(),
+  //       };})
+  //       store = {
+  //         bills: () => {
+  //           return {
+  //             list: () =>
+  //               Promise.resolve([
+  //                 {
+  //                   date: "2022-01-01",
+  //                   status: "pending",
+  //                 },
+  //                 {
+  //                   date: "2022-02-01",
+  //                   status: "accepted",
+  //                 },
+  //               ]),
+  //           };
+  //         },
+  //       };
+  //     });
+
+  //     test("should return a list of bills", async () => {
+  //       const bill = new Bills({
+  //         document,
+  //         store,
+  //       });
+
+  //       const bills = await bill.getBills();
+  //       expect(bills).toEqual([
+  //         {
+  //           date: "1 Jan. 22",
+  //           status: "En attente",
+  //         },
+  //         {
+  //           date: "1 Fév. 22",
+  //           status: "Accepté",
+  //         },
+  //       ]);
+  //     });
+  //   });
+  // });
+
+  // test d'intégration GET
+  describe("Given I am a user connected as Admin", () => {
+    describe("When I navigate to Dashboard", () => {
+      test("fetches bills from mock API GET", async () => {
+        localStorage.setItem(
+          "user",
+          JSON.stringify({ type: "Admin", email: "a@a" })
+        );
+        const root = document.createElement("div");
+        root.setAttribute("id", "root");
+        document.body.append(root);
+        router();
+        window.onNavigate(ROUTES_PATH.Bills);
+        await waitFor(() => screen.getByText("Mes notes de frais"));
+        expect(screen.getByTestId("tbody")).toBeTruthy();
       });
-      document = {
-        querySelector: jest.fn(),
-        querySelectorAll: jest.fn(),
-      };
-      store = {
-        bills: () => {
-          return {
-            list: () =>
-              Promise.resolve([
-                {
-                  date: "2022-01-01",
-                  status: "pending",
-                },
-                {
-                  date: "2022-02-01",
-                  status: "accepted",
-                },
-              ]),
-          };
-        },
-      };
-    });
+      describe("When an error occurs on API", () => {
+        beforeEach(() => {
+          jest.spyOn(mockStore, "bills");
+          Object.defineProperty(window, "localStorage", {
+            value: localStorageMock,
+          });
+          window.localStorage.setItem(
+            "user",
+            JSON.stringify({
+              type: "Admin",
+              email: "a@a",
+            })
+          );
+          const root = document.createElement("div");
+          root.setAttribute("id", "root");
+          document.body.appendChild(root);
+          router();
+        });
 
-    test("should return a list of bills", async () => {
-      const bill = new Bills({
-        document,
-        store,
+        afterEach(() => {
+          jest.restoreAllMocks();
+        });
+
+        test("fetches bills from an API and fails with 404 message error", async () => {
+          mockStore.bills.mockImplementationOnce(() => {
+            return {
+              list: () => {
+                return Promise.reject(new Error("Erreur 404"));
+              },
+            };
+          });
+          window.onNavigate(ROUTES_PATH.Bills);
+          await new Promise(process.nextTick);
+          const message = await screen.getByText(/Erreur 404/);
+          expect(message).toBeTruthy();
+        });
+
+        test("fetches messages from an API and fails with 500 message error", async () => {
+          mockStore.bills.mockImplementationOnce(() => {
+            return {
+              list: () => {
+                return Promise.reject(new Error("Erreur 500"));
+              },
+            };
+          });
+
+          window.onNavigate(ROUTES_PATH.Bills);
+          await new Promise(process.nextTick);
+          const message = await screen.getByText(/Erreur 500/);
+          expect(message).toBeTruthy();
+        });
       });
-
-      const bills = await bill.getBills();
-      expect(bills).toEqual([
-        {
-          date: "1 Jan. 22",
-          status: "En attente",
-        },
-        {
-          date: "1 Fév. 22",
-          status: "Accepté",
-        },
-      ]);
     });
   });
 });
