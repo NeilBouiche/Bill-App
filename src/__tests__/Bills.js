@@ -12,6 +12,8 @@ import jsdom from "jsdom";
 import router from "../app/Router.js";
 import { localStorageMock } from "../__mocks__/localStorage.js";
 
+jest.mock("../app/Store.js", () => mockStore);
+
 describe("Given I am connected as an employee", () => {
   beforeEach(() => {
     const dom = new JSDOM(`<!DOCTYPE html><p>Hello world</p>`);
@@ -103,66 +105,13 @@ describe("Given I am connected as an employee", () => {
     });
   });
 
-  //   describe("When the page renders", () => {
-  //     let document, store;
-
-  //     beforeEach(() => {
-  //       const dom = new JSDOM(`<!DOCTYPE html><p>Hello world</p>`);
-  //       global.document = dom.window.document;
-  //       global.$ = jest.fn().mockReturnValue({
-  //         click: jest.fn(),
-  //       });
-  //       document = {
-  //         querySelector: jest.fn(),
-  //         querySelectorAll: jest.fn(),
-  //       };})
-  //       store = {
-  //         bills: () => {
-  //           return {
-  //             list: () =>
-  //               Promise.resolve([
-  //                 {
-  //                   date: "2022-01-01",
-  //                   status: "pending",
-  //                 },
-  //                 {
-  //                   date: "2022-02-01",
-  //                   status: "accepted",
-  //                 },
-  //               ]),
-  //           };
-  //         },
-  //       };
-  //     });
-
-  //     test("should return a list of bills", async () => {
-  //       const bill = new Bills({
-  //         document,
-  //         store,
-  //       });
-
-  //       const bills = await bill.getBills();
-  //       expect(bills).toEqual([
-  //         {
-  //           date: "1 Jan. 22",
-  //           status: "En attente",
-  //         },
-  //         {
-  //           date: "1 Fév. 22",
-  //           status: "Accepté",
-  //         },
-  //       ]);
-  //     });
-  //   });
-  // });
-
   // test d'intégration GET
-  describe("Given I am a user connected as Admin", () => {
+  describe("Given I am a user connected as Employee", () => {
     describe("When I navigate to Dashboard", () => {
       test("fetches bills from mock API GET", async () => {
         localStorage.setItem(
           "user",
-          JSON.stringify({ type: "Admin", email: "a@a" })
+          JSON.stringify({ type: "Employee", email: "a@a" })
         );
         const root = document.createElement("div");
         root.setAttribute("id", "root");
@@ -181,7 +130,7 @@ describe("Given I am connected as an employee", () => {
           window.localStorage.setItem(
             "user",
             JSON.stringify({
-              type: "Admin",
+              type: "Employee",
               email: "a@a",
             })
           );
