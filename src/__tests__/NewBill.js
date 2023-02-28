@@ -63,6 +63,7 @@ describe("Given I am connected as an employee", () => {
       pctInput = screen.getByTestId("pct");
       fileInput = screen.getByTestId("file");
       fileInputLabel = screen.getByLabelText(/Justificatif/i);
+      console.log(fileInputLabel);
     });
 
     afterEach(() => {
