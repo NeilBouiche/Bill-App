@@ -1,6 +1,7 @@
 import VerticalLayout from "./VerticalLayout.js";
 import ErrorPage from "./ErrorPage.js";
 import LoadingPage from "./LoadingPage.js";
+import { formatDate } from "../app/format.js";
 
 import Actions from "./Actions.js";
 
@@ -20,13 +21,21 @@ const row = (bill) => {
 };
 
 // Ajout de la methode sort pour régler le 1er Bug
+
 const rows = (data) => {
-  return data && data.length
-    ? data
-        .sort((a, b) => (a.date < b.date ? 1 : -1))
-        .map((bill) => row(bill))
-        .join("")
-    : "";
+  if (data && data.length) {
+    const sortedData = [...data].sort(
+      (a, b) => new Date(b.date) - new Date(a.date)
+    );
+    const formattedData = sortedData.map((bill) => {
+      return {
+        ...bill,
+        date: formatDate(bill.date),
+      };
+    });
+    return formattedData.map((bill) => row(bill)).join("");
+  }
+  return "";
 };
 
 export default ({ data: bills, loading, error }) => {

@@ -11,6 +11,7 @@ import mockStore from "../__mocks__/store.js";
 import jsdom from "jsdom";
 import router from "../app/Router.js";
 import { localStorageMock } from "../__mocks__/localStorage.js";
+import { formatDate } from "../app/format.js";
 
 jest.mock("../app/Store.js", () => mockStore);
 
@@ -50,7 +51,7 @@ describe("Given I am connected as an employee", () => {
     test("Then bills should be ordered from earliest to latest", () => {
       document.body.innerHTML = BillsUI({ data: bills });
       const dates = screen
-        .getAllByText(
+        .queryAllByText(
           /^(19|20)\d\d[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])$/i
         )
         .map((a) => a.innerHTML);
